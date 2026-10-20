@@ -1,0 +1,20 @@
+{
+  "id": "encuestador",
+  "name": "Encuestador",
+  "version": "0.1.0",
+  "origin": "https://tecnocoopcl.github.io",
+  "entry": "/encuestador/",
+  "icon": "encuestador.svg",
+  "sdk": "^0.1.0",
+  "trusted": false,
+  "capabilities": {
+    "solid": {
+      "container": "Aplicaciones/encuestador/",
+      "modes": ["read", "append", "write"]
+    },
+    "profile": "none",
+    "ui": ["confirm", "notify"],
+    "files": false,
+    "share": false
+  }
+}
