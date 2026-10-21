@@ -1,24 +1,15 @@
-# Encuestador
+# Encuestador público
 
-Mini-app para construir encuestas modulares, validar respuestas, revisar los
-resultados en una tabla y exportarlos como CSV.
+Web pública para responder las encuestas creadas desde la aplicación
+**Encuestador** de Espacio.
 
-## Alcance de la versión 0.1
+La autoría, publicación, resultados y exportación CSV viven en
+`tecnocoopcl/espacio`. Esta web solo carga una encuesta desde
+`tecnocoopcl/api`, valida los campos y envía la respuesta para que la API la
+deposite en el Solid Pod del creador.
 
-- Crear, editar, duplicar, ordenar y eliminar preguntas.
-- Respuestas de texto breve, texto largo, número, fecha, alternativa única y
-  alternativas múltiples.
-- Preguntas obligatorias y validación con mensajes junto al campo incorrecto.
-- Vista previa y formulario de respuesta.
-- Tabla de respuestas y exportación CSV compatible con Excel.
-- Guardado en `Aplicaciones/encuestador/encuestador.json` cuando corre dentro de
-  Espacio; almacenamiento local del navegador cuando se abre como web suelta.
-- Publicación estática mediante GitHub Pages.
-
-La recepción pública de respuestas de otros socios no forma parte de esta
-versión: requiere acordar con `tecno-cooperativa-backend` un buzón autenticado.
-La interfaz y el modelo de datos quedan separados del almacenamiento para poder
-añadirlo sin rehacer el constructor.
+Una encuesta se abre como `?encuesta=identificador`. Si el parámetro falta, la
+portada permite escribirlo manualmente.
 
 ## Desarrollo
 
@@ -29,24 +20,18 @@ npm install
 npm run dev
 ```
 
-La aplicación queda en <http://localhost:5174>.
+Por defecto usa `https://status-tc.aebn.cl`. Para probar la API local:
 
-## Probar dentro de Espacio
-
-En la raíz del repositorio `espacio`, crear `.espacio-dev.json`:
-
-```json
-{ "encuestador": "http://localhost:5174" }
+```bash
+VITE_API_URL=http://localhost:8080 npm run dev
 ```
 
-Copiar `docs/espacio-manifest.json` a
-`espacio/packages/catalog/apps/encuestador.json`, copiar
-`public/encuestador.svg` a los iconos del shell y ejecutar ambos proyectos. El
-origen del manifiesto debe ajustarse cuando exista el dominio definitivo.
-
-## Verificación
+## Verificación y publicación
 
 ```bash
 npm test
 npm run build
 ```
+
+El workflow de GitHub Pages compila y publica `dist/` al integrar cambios en
+`main`.
