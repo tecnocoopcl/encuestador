@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Por defecto usa `https://status-tc.aebn.cl`. Para probar la API local:
+Por defecto usa `https://api.tecnocooperativa.cl`. Para probar la API local:
 
 ```bash
 VITE_API_URL=http://localhost:8080 npm run dev

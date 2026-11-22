@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { validateAnswers } from './model.js'
 import './styles.css'
 
-const API_URL = (import.meta.env.VITE_API_URL ?? 'https://status-tc.aebn.cl').replace(/\/+$/, '')
+const API_URL = (import.meta.env.VITE_API_URL ?? 'https://api.tecnocooperativa.cl').replace(/\/+$/, '')
 const ErrorText = ({ children }) => children ? <p className="field-error" role="alert">{children}</p> : null
 
 function ResponseField({ question, value, error, onChange }) {
