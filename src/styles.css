@@ -174,3 +174,32 @@ tbody tr:hover { background: #fafaf6; }
   .landing-card { margin-top: 8vh; padding: 28px 21px; }
   .landing-card form { flex-direction: column; }
 }
+
+.response-section {
+  margin: 28px 0 4px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+.response-section h2 {
+  margin: 0 0 6px;
+}
+.response-section p {
+  margin: 0;
+  opacity: 0.75;
+}
+.session-note {
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+.session-note code {
+  word-break: break-all;
+}
+.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}

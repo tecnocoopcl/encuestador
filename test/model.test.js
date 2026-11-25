@@ -28,3 +28,9 @@ test('exporta respuestas y escapa valores CSV', () => {
   assert.match(csv, /"Sí, de acuerdo"/)
   assert.match(csv, /A; B/)
 })
+
+test('las secciones no se responden ni se exigen', () => {
+  const conSecciones = { questions: [{ id: 's1', type: 'section', title: 'Parte 1' }, { id: 'q1', label: 'Nombre', type: 'short', required: true, options: [] }] }
+  assert.deepEqual(validateAnswers(conSecciones, { q1: 'Ana' }), {})
+  assert.ok(validateAnswers(conSecciones, { q1: '   ' }).q1)
+})

@@ -74,12 +74,15 @@ export function validateSurvey(survey) {
 }
 
 function isEmpty(value) {
-  return value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)
+  return value === undefined || value === null || (typeof value === 'string' && !value.trim()) || (Array.isArray(value) && value.length === 0)
 }
+
+export const isSection = (item) => item?.type === 'section'
 
 export function validateAnswers(survey, answers) {
   const errors = {}
   survey.questions.forEach((question) => {
+    if (isSection(question)) return
     const value = answers[question.id]
     if (question.required && isEmpty(value)) errors[question.id] = 'Esta respuesta es obligatoria.'
     if (question.type === 'number' && !isEmpty(value) && !Number.isFinite(Number(value))) {
