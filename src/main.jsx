@@ -31,8 +31,10 @@ function Encuesta({ survey, webId }) {
     if (Object.keys(found).length) return
     setStatus('sending'); setMessage('')
     try {
-      // Con sesión, solidFetch agrega el token y la prueba DPoP que verifica la API.
-      const response = await (webId ? fetchConSesion : fetch)(`${API_URL}/encuestador/encuestas/${encodeURIComponent(survey.id)}/respuestas`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ answers }) })
+      // Siempre hay sesión: solidFetch agrega el token y la prueba DPoP que verifica la API.
+      const response = await fetchConSesion(`${API_URL}/encuestador/encuestas/${encodeURIComponent(survey.id)}/respuestas`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ answers }) })
+      if (response.status === 401) throw new Error('Tu sesión venció. Cierra sesión y vuelve a entrar para responder.')
+      if (response.status === 403) throw new Error('Tu cuenta no puede responder esta encuesta.')
       if (!response.ok) throw new Error('No pudimos registrar tu respuesta. Inténtalo nuevamente.')
       setStatus('sent')
     } catch (error) { setStatus('error'); setMessage(error.message) }
@@ -43,9 +45,9 @@ function Encuesta({ survey, webId }) {
     {survey.questions.map((question) => isSection(question)
       ? <section className="response-section" key={question.id}><h2>{question.title}</h2>{question.description && <p>{question.description}</p>}</section>
       : <ResponseField key={question.id} question={question} value={answers[question.id]} error={errors[question.id]} onChange={(value) => setAnswers({ ...answers, [question.id]: value })} />)}
-    {webId && <p className="session-note">{survey.anonymous
+    <p className="session-note">{survey.anonymous
       ? 'Tu respuesta es anónima: comprobamos que eres socio, pero no guardamos quién respondió.'
-      : <>Respondes como <code>{webId}</code>. Quien creó la encuesta verá tu WebID junto a tu respuesta.</>} <button type="button" className="link" onClick={() => cerrarSesion().then(() => location.reload())}>Cerrar sesión</button></p>}
+      : <>Respondes como <code>{webId}</code>. Quien creó la encuesta verá tu WebID junto a tu respuesta.</>} <button type="button" className="link" onClick={() => cerrarSesion().then(() => location.reload())}>Cerrar sesión</button></p>
     {message && <p className="submit-error" role="alert">{message}</p>}
     <button className="button button--primary" disabled={status === 'sending'}>{status === 'sending' ? 'Enviando…' : 'Enviar respuesta'}</button>
   </form></main>
@@ -82,9 +84,10 @@ function App({ webId }) {
   if (status === 'landing') return <Landing onOpen={open} />
   if (status === 'loading') return <main className="response-page"><div className="loading"><span /><p>Cargando encuesta…</p></div></main>
   if (status === 'missing') return <main className="response-page"><section className="success-card"><h1>Encuesta no disponible</h1><p>Revisa el enlace o solicita uno nuevo a quien creó la encuesta.</p><button className="button button--primary" onClick={() => setStatus('landing')}>Buscar otra encuesta</button></section></main>
-  const restringida = survey.access && survey.access !== 'public'
-  if (restringida && !webId) return <Ingreso survey={survey} />
-  return <Encuesta survey={survey} webId={restringida ? webId : null} />
+  // Todas las encuestas son para socios: se responde con la sesión de la
+  // cooperativa, y así la carpeta de respuestas no queda abierta a cualquiera.
+  if (!webId) return <Ingreso survey={survey} />
+  return <Encuesta survey={survey} webId={webId} />
 }
 
 // Primero se completa el regreso del proveedor (o se restaura la sesión): así

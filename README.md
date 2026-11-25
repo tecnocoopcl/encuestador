@@ -11,15 +11,20 @@ deposite en el Solid Pod del creador.
 Una encuesta se abre como `?encuesta=identificador`. Si el parámetro falta, la
 portada permite escribirlo manualmente.
 
-## Encuestas solo para socios
+## Solo para socios
 
-Si la encuesta trae `access: "members"` o `access: "list"`, la web pide
-iniciar sesión Solid con el proveedor de la cooperativa
+Toda encuesta se responde con sesión: la web pide iniciar sesión Solid con el
+proveedor de la cooperativa
 (`https://pods.tecnocooperativa.cl`, o `VITE_SOLID_PROVEEDOR`) antes de mostrar
 el formulario, y envía la respuesta con `fetch` de
 `@inrupt/solid-client-authn-browser`, que agrega el token y la prueba DPoP. Quién
-puede responder lo decide la API; la web solo consigue la sesión. Con
-`anonymous: true` se avisa que la respuesta no guarda el WebID.
+puede responder lo decide la API (`members`: cualquier socio; `list`: solo los
+invitados); la web solo consigue la sesión. Con `anonymous: true` se avisa que
+la respuesta no guarda el WebID.
+
+La API deja la respuesta en el Pod del creador con la identidad propia del
+encuestador (ADR-015 de medio), y la carpeta de respuestas solo le da `Append`
+a ese WebID: ya no está abierta a cualquiera.
 
 ## Desarrollo
 
