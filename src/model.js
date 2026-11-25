@@ -79,10 +79,34 @@ function isEmpty(value) {
 
 export const isSection = (item) => item?.type === 'section'
 
-export function validateAnswers(survey, answers) {
+/** Un paso parte una página nueva: se responde un paso a la vez y se envía en el último. */
+export const isStep = (item) => item?.type === 'step'
+
+/** Secciones y pasos ordenan la encuesta, pero no reciben respuesta. */
+export const isHeading = (item) => isSection(item) || isStep(item)
+
+/**
+ * Parte la encuesta en páginas: `[{ step, items }]`. Lo que va antes del primer
+ * paso es una página sin paso (`step: null`); si la encuesta parte con un paso,
+ * no hay una página vacía antes. Sin pasos, todo es una sola página.
+ */
+export function splitSteps(survey) {
+  const pages = []
+  for (const item of survey.questions ?? []) {
+    if (isStep(item)) pages.push({ step: item, items: [] })
+    else {
+      if (!pages.length) pages.push({ step: null, items: [] })
+      pages.at(-1).items.push(item)
+    }
+  }
+  return pages.length ? pages : [{ step: null, items: [] }]
+}
+
+/** Valida toda la encuesta o, con `items`, solo las preguntas de una página. */
+export function validateAnswers(survey, answers, items = survey.questions) {
   const errors = {}
-  survey.questions.forEach((question) => {
-    if (isSection(question)) return
+  items.forEach((question) => {
+    if (isHeading(question)) return
     const value = answers[question.id]
     if (question.required && isEmpty(value)) errors[question.id] = 'Esta respuesta es obligatoria.'
     if (question.type === 'number' && !isEmpty(value) && !Number.isFinite(Number(value))) {
@@ -104,10 +128,11 @@ function csvCell(value) {
 }
 
 export function responsesToCsv(survey, responses) {
-  const header = ['Fecha', ...survey.questions.map((question) => question.label)]
+  const questions = survey.questions.filter((question) => !isHeading(question))
+  const header = ['Fecha', ...questions.map((question) => question.label)]
   const rows = responses.map((response) => [
     new Date(response.submittedAt).toLocaleString('es-CL'),
-    ...survey.questions.map((question) => {
+    ...questions.map((question) => {
       const value = response.answers[question.id]
       return Array.isArray(value) ? value.join('; ') : value ?? ''
     }),

@@ -187,6 +187,18 @@ tbody tr:hover { background: #fafaf6; }
   margin: 0;
   opacity: 0.75;
 }
+.response-step { padding: 24px 28px; border: 1px solid var(--line); background: var(--paper); border-radius: 14px; }
+.response-step:focus { outline: none; }
+.response-step:focus-visible { outline: 3px solid color-mix(in srgb, var(--focus) 30%, transparent); outline-offset: 2px; }
+.response-step h2 { margin: 16px 0 6px; font-family: 'Newsreader', Georgia, serif; font-size: 28px; line-height: 1.1; }
+.response-step > p:not(.eyebrow) { margin: 0; color: var(--muted); line-height: 1.55; }
+.response-progress { height: 6px; margin-top: 12px; overflow: hidden; border-radius: 999px; background: var(--line); }
+.response-progress span { display: block; height: 100%; background: var(--green); transition: width .2s; }
+.response-nav { display: flex; gap: 8px; }
+/* Sin «Anterior», el botón principal igual queda a la derecha. */
+.response-nav .button--primary { margin-left: auto; }
+@media (prefers-reduced-motion: reduce) { .response-progress span { transition: none; } }
+@media (max-width: 680px) { .response-step { padding: 21px; } }
 .session-note {
   font-size: 0.9em;
   opacity: 0.85;

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { isSection, validateAnswers } from './model.js'
+import { isSection, splitSteps, validateAnswers } from './model.js'
 import { cerrarSesion, fetchConSesion, iniciarSesion, retomarSesion } from './sesion.js'
 import './styles.css'
 
@@ -24,11 +24,36 @@ function Encuesta({ survey, webId }) {
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
+  const [page, setPage] = useState(0)
+  const pages = splitSteps(survey)
+  const { step, items } = pages[page]
+  const last = page === pages.length - 1
+  const stepRef = useRef(null)
+  const moved = useRef(false)
+  // Al cambiar de página, el foco va a su encabezado para que el lector de
+  // pantalla la anuncie. No al cargar: ahí el foco queda donde estaba.
+  useEffect(() => {
+    if (!moved.current) return
+    window.scrollTo({ top: 0 })
+    stepRef.current?.focus({ preventScroll: true })
+  }, [page])
+  const goTo = (index) => {
+    moved.current = true
+    setPage(index)
+    setMessage('')
+  }
   const submit = async (event) => {
     event.preventDefault()
+    // Antes de seguir, solo se revisa la página que se ve.
+    const pageErrors = validateAnswers(survey, answers, items)
+    setErrors(pageErrors)
+    if (Object.keys(pageErrors).length) return
+    if (!last) return goTo(page + 1)
+    // Al enviar se revisa todo: si algo quedó mal atrás, se vuelve a esa página.
     const found = validateAnswers(survey, answers)
     setErrors(found)
-    if (Object.keys(found).length) return
+    const withError = pages.findIndex((p) => p.items.some((q) => found[q.id]))
+    if (withError !== -1) return goTo(withError)
     setStatus('sending'); setMessage('')
     try {
       // Siempre hay sesión: solidFetch agrega el token y la prueba DPoP que verifica la API.
@@ -41,15 +66,24 @@ function Encuesta({ survey, webId }) {
   }
   if (status === 'sent') return <main className="response-page"><section className="success-card"><div aria-hidden="true">✓</div><h1>Respuesta registrada</h1><p>Gracias por participar. Tu respuesta quedó guardada en el Pod del creador de la encuesta.</p></section></main>
   return <main className="response-page"><form className="response-form" onSubmit={submit} noValidate>
-    <div className="response-form__heading"><p className="eyebrow">Encuestador</p><h1>{survey.title}</h1>{survey.description && <p>{survey.description}</p>}<small><strong>*</strong> indica una pregunta obligatoria</small></div>
-    {survey.questions.map((question) => isSection(question)
+    <div className="response-form__heading"><p className="eyebrow">Encuestador</p><h1>{survey.title}</h1>{page === 0 && survey.description && <p>{survey.description}</p>}<small><strong>*</strong> indica una pregunta obligatoria</small></div>
+    {pages.length > 1 && <div className="response-step" ref={stepRef} tabIndex={-1}>
+      <p className="eyebrow">Paso {page + 1} de {pages.length}</p>
+      <div className="response-progress" role="progressbar" aria-label="Avance de la encuesta" aria-valuemin={1} aria-valuemax={pages.length} aria-valuenow={page + 1}><span style={{ width: `${((page + 1) / pages.length) * 100}%` }} /></div>
+      {step && <h2>{step.title}</h2>}
+      {step?.description && <p>{step.description}</p>}
+    </div>}
+    {items.map((question) => isSection(question)
       ? <section className="response-section" key={question.id}><h2>{question.title}</h2>{question.description && <p>{question.description}</p>}</section>
       : <ResponseField key={question.id} question={question} value={answers[question.id]} error={errors[question.id]} onChange={(value) => setAnswers({ ...answers, [question.id]: value })} />)}
     <p className="session-note">{survey.anonymous
       ? 'Tu respuesta es anónima: comprobamos que eres socio, pero no guardamos quién respondió.'
       : <>Respondes como <code>{webId}</code>. Quien creó la encuesta verá tu WebID junto a tu respuesta.</>} <button type="button" className="link" onClick={() => cerrarSesion().then(() => location.reload())}>Cerrar sesión</button></p>
     {message && <p className="submit-error" role="alert">{message}</p>}
-    <button className="button button--primary" disabled={status === 'sending'}>{status === 'sending' ? 'Enviando…' : 'Enviar respuesta'}</button>
+    <div className="response-nav">
+      {page > 0 && <button type="button" className="button button--secondary" onClick={() => goTo(page - 1)}>← Anterior</button>}
+      <button className="button button--primary" disabled={status === 'sending'}>{!last ? 'Siguiente →' : status === 'sending' ? 'Enviando…' : 'Enviar respuesta'}</button>
+    </div>
   </form></main>
 }
 

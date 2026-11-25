@@ -1,6 +1,18 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { responsesToCsv, validateAnswers, validateSurvey } from '../src/model.js'
+import { responsesToCsv, splitSteps, validateAnswers, validateSurvey } from '../src/model.js'
+
+test('los pasos parten la encuesta en páginas que se validan por separado', () => {
+  const q = (id, required = false) => ({ id, label: id, type: 'short', required, options: [] })
+  const survey = { questions: [q('a', true), { id: 'p2', type: 'step', title: 'Dos' }, { id: 's', type: 'section', title: 'S' }, q('b', true)] }
+  const pages = splitSteps(survey)
+  assert.deepEqual(pages.map((p) => [p.step?.id ?? null, p.items.map((i) => i.id)]), [[null, ['a']], ['p2', ['s', 'b']]])
+  assert.deepEqual(Object.keys(validateAnswers(survey, {}, pages[0].items)), ['a'])
+  assert.deepEqual(Object.keys(validateAnswers(survey, {})), ['a', 'b'])
+  assert.equal(splitSteps({ questions: [{ id: 'p1', type: 'step', title: 'Uno' }, q('a')] }).length, 1)
+  assert.equal(splitSteps({ questions: [q('a')] })[0].step, null)
+  assert.equal(responsesToCsv({ questions: survey.questions }, []), 'Fecha,a,b')
+})
 
 const survey = {
   title: 'Decisión',
